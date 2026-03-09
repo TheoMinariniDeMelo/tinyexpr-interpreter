@@ -1,3 +1,4 @@
+#include "./string.h"
 #include <stdio.h>
 #include <ctype.h>
 
@@ -27,6 +28,9 @@ typedef struct
     int line, col;
     TokenType type;
 } Token;
+
 void lexer_init(Lexer *lx, const char *src);
+void free_token(Token *token);
+static Token lex_number(Lexer *lx);
 Token next_token(Lexer *lx);
 const char *token_name(TokenType type);

@@ -1,33 +1,7 @@
 #include "./string.h"
 #include <stdio.h>
 #include <ctype.h>
-
-typedef enum
-{
-    TOK_NUMBER,
-    TOK_STAR,
-    TOK_LPAREN,
-    TOK_RPAREN,
-    TOK_PLUS,
-    TOK_MINUS,
-    TOK_SLASH,
-    TOK_ERROR,
-    TOK_EOF
-} TokenType;
-
-typedef struct
-{
-    char *src;
-    size_t pos;
-    int line, col;
-} Lexer;
-
-typedef struct
-{
-    char *lexeme;
-    int line, col;
-    TokenType type;
-} Token;
+#include "./lexer.h"
 
 void lexer_init(Lexer *lx, const char *src)
 {
@@ -57,7 +31,7 @@ static char advance(Lexer *lx)
         lx->line += 1;
     }
     else
-    {
+{
         lx->col += 1;
     }
     return c;
@@ -94,7 +68,7 @@ static Token token_error(int line, int col, char *msg)
         .type = TOK_ERROR,
         .lexeme = strdup(msg)};
 }
-static void free_token(Token *token)
+void free_token(Token *token)
 {
     free(token->lexeme);
     token->lexeme = NULL;
@@ -127,43 +101,43 @@ Token next_token(Lexer *lx)
     char c = peek(lx);
     if (c == '\0')
         return make_token(lx, TOK_EOF, lx->pos, lx->pos, lx->line, lx->col);
-    
-        if (c == ' ')
+
+    if (c == ' ')
     {
         skip_ws(lx);
         c = peek(lx);
     }
-   
+
     if (isdigit(c))
         return lex_number(lx);
 
     advance(lx);
     switch (c)
     {
-    case '(':
-        return make_token(lx, TOK_LPAREN, lx->pos, lx->pos, lx->line, lx->col);
-        break;
-    case ')':
-        return make_token(lx, TOK_RPAREN, lx->pos, lx->pos, lx->line, lx->col);
-        break;
-    case '+':
-        return make_token(lx, TOK_PLUS, lx->pos, lx->pos, lx->line, lx->col);
-        break;
+        case '(':
+            return make_token(lx, TOK_LPAREN, lx->pos, lx->pos, lx->line, lx->col);
+            break;
+        case ')':
+            return make_token(lx, TOK_RPAREN, lx->pos, lx->pos, lx->line, lx->col);
+            break;
+        case '+':
+            return make_token(lx, TOK_PLUS, lx->pos, lx->pos, lx->line, lx->col);
+            break;
 
-    case '-':
-        return make_token(lx, TOK_MINUS, lx->pos, lx->pos, lx->line, lx->col);
-        break;
+        case '-':
+            return make_token(lx, TOK_MINUS, lx->pos, lx->pos, lx->line, lx->col);
+            break;
 
-    case '*':
-        return make_token(lx, TOK_STAR, lx->pos, lx->pos, lx->line, lx->col);
-        break;
+        case '*':
+            return make_token(lx, TOK_STAR, lx->pos, lx->pos, lx->line, lx->col);
+            break;
 
-    case '/':
-        return make_token(lx, TOK_SLASH, lx->pos, lx->pos, lx->line, lx->col);
-        break;
-    case '\0':
-        return make_token(lx, TOK_EOF, lx->pos, lx->pos, lx->line, lx->col);
-        break;
+        case '/':
+            return make_token(lx, TOK_SLASH, lx->pos, lx->pos, lx->line, lx->col);
+            break;
+        case '\0':
+            return make_token(lx, TOK_EOF, lx->pos, lx->pos, lx->line, lx->col);
+            break;
     }
     return token_error(lx->line, lx->col, "unexpected character");
 }
@@ -171,34 +145,34 @@ const char *token_name(TokenType type)
 {
     switch (type)
     {
-    case TOK_NUMBER:
-        return "NUMBER";
-        break;
-    case TOK_STAR:
-        return "STAR";
-        break;
-    case TOK_LPAREN:
-        return "LPAREN";
-        break;
-    case TOK_RPAREN:
-        return "RPAREN";
-        break;
-    case TOK_PLUS:
-        return "PLUS";
-        break;
-    case TOK_MINUS:
-        return "MINUS";
-        break;
-    case TOK_SLASH:
-        return "SLASH";
-        break;
-    case TOK_ERROR:
-        return "ERROR";
-        break;
-    case TOK_EOF:
-        return "EOF";
-        break;
-    default:
-        return "???";
+        case TOK_NUMBER:
+            return "NUMBER";
+            break;
+        case TOK_STAR:
+            return "STAR";
+            break;
+        case TOK_LPAREN:
+            return "LPAREN";
+            break;
+        case TOK_RPAREN:
+            return "RPAREN";
+            break;
+        case TOK_PLUS:
+            return "PLUS";
+            break;
+        case TOK_MINUS:
+            return "MINUS";
+            break;
+        case TOK_SLASH:
+            return "SLASH";
+            break;
+        case TOK_ERROR:
+            return "ERROR";
+            break;
+        case TOK_EOF:
+            return "EOF";
+            break;
+        default:
+            return "???";
     }
 }
