@@ -23,3 +23,12 @@ double eval(AST* ast){
         default: return 0;
     }
 }
+void free_ast(AST* ast){
+    if(ast->tag == AST_NUMBER) free(ast);
+    else{
+        free_ast(ast->data.bin_op.left);
+        free_ast(ast->data.bin_op.right);
+        free(ast);
+    }
+}
+

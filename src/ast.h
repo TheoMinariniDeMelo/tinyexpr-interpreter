@@ -20,5 +20,5 @@ struct AST {
     } data;
 };
 AST* new_ast(AST ast);
-
 double eval(AST* ast);
+void free_ast(AST* ast);

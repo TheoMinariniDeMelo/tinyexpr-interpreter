@@ -4,6 +4,8 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include "./list.h"
+#include "./parser.h"
+#include "./lexer.h"
 struct termios orgi_termios;
 List* list;
 
@@ -12,6 +14,8 @@ typedef struct {
     double  value;
     uint8_t error;
 } Expression;
+
+Lexer lx;
 
 void enable_raw_mode(){
     if(!isatty(STDIN_FILENO)){
@@ -35,10 +39,10 @@ void handle_int(int signal){
 int main(int, char**){
     signal(SIGINT, handle_int);
     enable_raw_mode();
-
-    list = init_list();
-
-    for(;;){
-        
-    }
+    char* exp = "5 * 12*(5+2)";
+    lexer_init(&lx, exp); 
+    AST* ast = parse_expr();
+    double value = eval(ast);
+    printf("%fl", value);
+    free_ast(ast);
 }
