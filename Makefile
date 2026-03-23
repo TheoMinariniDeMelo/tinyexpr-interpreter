@@ -1,12 +1,21 @@
-TEST_DIR := ./src/tests
-SRC := ./src
+CC := gcc
+CCFLAGS := -lncurses
+OBJ_DIR := ./obj
+SRC_DIR := ./src
+SRC_FILES := $(wildcard $(SRC_DIR)/*.c)
+OBJ_FILES := $(patsubst $(SRC_DIR)/%.c, $(OBJ_DIR)/%.o, $(SRC_FILES))
+TARGET := calc
 
-#test: tests.out
-#	./tests.out
+.PHONY: clean
 
-a.out: $(SRC)/main.c $(SRC)/parser.c $(SRC)/ast.c $(SRC)/lexer.c $(SRC)/string.c
-	gcc -g $(SRC)/main.c $(SRC)/parser.c $(SRC)/ast.c $(SRC)/lexer.c $(SRC)/string.c -o $@
+all: $(TARGET)
 
+$(TARGET): $(OBJ_FILES)
+	$(CC) $^ $(CCFLAGS) -o $@
 
-tests.out: $(TEST_DIR)/main.c $(SRC)/lexer.c $(SRC)/string.c
-	gcc -g $(TEST_DIR)/main.c $(SRC)/lexer.c $(SRC)/string.c -o $@
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
+	@mkdir -p $(OBJ_DIR)
+	$(CC) -c $< -o $@
+
+clean:
+	rm -rf $(OBJ_DIR) $(TARGET)
