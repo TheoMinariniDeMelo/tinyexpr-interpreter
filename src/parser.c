@@ -9,7 +9,7 @@
     error.msg = strdup(message);\
     error.tag = t;\
     longjmp(exception_env, 1);}\
-    while(false);
+    while(0);
 
 Token current;
 
@@ -31,13 +31,14 @@ void expect(Token t){
 AST* parse_expr(){
     AST* left = parse_term();
 
-    while(current.type == TOK_PLUS || current.type == TOK_MINUS){
+    TokenType type = current.type;
+    while(type == TOK_PLUS || type == TOK_MINUS){
         AST* right = parse_term();
         if(right == NULL) THROW("Expected Token", PARSER_ERROR);
 
-        if(current.type == TOK_PLUS) left = NEW_AST(AST_ADD, .bin_op = { .left = left, .right = right });
+        if(type == TOK_PLUS) left = NEW_AST(AST_ADD, .bin_op = { .left = left, .right = right });
         else left = NEW_AST(AST_SUB, .bin_op = { .left = left, .right = right });
-
+        type = current.type;
     }
     return left;
 }
@@ -45,12 +46,14 @@ AST* parse_expr(){
 AST* parse_term(){
     AST* left = parse_factor();
 
-    while(current.type == TOK_STAR || current.type == TOK_SLASH){
+    TokenType type = current.type;
+    while(type == TOK_STAR || type == TOK_SLASH){
         AST* right = parse_term();
         if(right == NULL) THROW("Expected Token", PARSER_ERROR);
 
-        if(current.type == TOK_STAR) left = NEW_AST(AST_PRODUCT, .bin_op = { .left = left, .right = right });
+        if(type == TOK_STAR) left = NEW_AST(AST_PRODUCT, .bin_op = { .left = left, .right = right });
         else left = NEW_AST(AST_DIVISION, .bin_op = { .left = left, .right = right });
+        type = current.type;
     }
     return left;
 }
