@@ -1,30 +1,29 @@
-#include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
+#include <setjmp.h>
 #include "./lexer.h"
-#include "./ast.h"
+#include "./parser.h"
+
+#define THROW(message, t) do {\
+    error.col = current.col;\
+    error.line = current.line;\
+    error.msg = strdup(message);\
+    error.tag = t;\
+    longjmp(exception_env, 1);}\
+    while(false);
 
 Token current;
 
+extern jmp_buf exception_env;
 extern Lexer lx;
-
-void error(char *msg){
-    printf("\x1b[1;31m");
-    printf("%s", msg);
-    printf("\x1b[0m");
-    exit(1);
-}
-AST* parse_expr();
-AST* parse_term();
-AST* parse_factor();
+extern ParseError error;
 
 void advance(){
     current = next_token(&lx);
 }
 
-void expect(TokenType t){
-    if(current.type != t){
-        error("Unexpected token");
+void expect(Token t){
+    if(current.type != t.type){
+        THROW("Unexpected token", PARSER_ERROR);
     }
     advance();
 }
@@ -33,8 +32,11 @@ AST* parse_expr(){
     AST* left = parse_term();
 
     while(current.type == TOK_PLUS || current.type == TOK_MINUS){
-        if(current.type == TOK_PLUS) left = NEW_AST(AST_ADD, .bin_op = { .left = left, .right = parse_term() });
-        else left = NEW_AST(AST_SUB, .bin_op = { .left = left, .right = parse_term() });
+        AST* right = parse_term();
+        if(right == NULL) THROW("Expected Token", PARSER_ERROR);
+
+        if(current.type == TOK_PLUS) left = NEW_AST(AST_ADD, .bin_op = { .left = left, .right = right });
+        else left = NEW_AST(AST_SUB, .bin_op = { .left = left, .right = right });
 
     }
     return left;
@@ -42,9 +44,13 @@ AST* parse_expr(){
 
 AST* parse_term(){
     AST* left = parse_factor();
+
     while(current.type == TOK_STAR || current.type == TOK_SLASH){
-        if(current.type == TOK_STAR) left = NEW_AST(AST_PRODUCT, .bin_op = { .left = left, .right = parse_factor() });
-        else left = NEW_AST(AST_DIVISION, .bin_op = { .left = left, .right = parse_factor() });
+        AST* right = parse_term();
+        if(right == NULL) THROW("Expected Token", PARSER_ERROR);
+
+        if(current.type == TOK_STAR) left = NEW_AST(AST_PRODUCT, .bin_op = { .left = left, .right = right });
+        else left = NEW_AST(AST_DIVISION, .bin_op = { .left = left, .right = right });
     }
     return left;
 }
@@ -61,10 +67,13 @@ AST* parse_factor(){
     if(current.type == TOK_LPAREN){
         AST* ast = parse_expr();
         if(current.type != TOK_RPAREN){
-            error("Expected token");
+            THROW("Unexpected Token", PARSER_ERROR);
         }
         return ast;
     }
-    error("Expected token");
+    if(current.type == TOK_ERROR){
+        THROW("Invalid Token", LEXICAL_ERROR);
+    }
+    THROW("Unexpected Token", PARSER_ERROR);
     return NULL;
 }

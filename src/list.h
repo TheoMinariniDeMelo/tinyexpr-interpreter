@@ -2,7 +2,7 @@
 #include <stddef.h>
 #include <stdlib.h>
 
-static struct Node{
+struct Node{
     struct Node* next_node;
     void* obj;
     int magic;

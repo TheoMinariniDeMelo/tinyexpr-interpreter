@@ -1,6 +1,6 @@
 #include "../lexer.h"
 
-int main(int, char **)
+int main(int arc, char ** argsv)
 {
     Lexer lexer;
     lexer_init(&lexer, "8 * 5 * 2 * ( 5 * 3 )*2*2/3");
