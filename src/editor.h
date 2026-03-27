@@ -25,6 +25,7 @@ typedef struct {
     char* gap_start;
     char* gap_end;
     size_t length;
+    size_t capacity; // buffer real size;
     Expression expr;
 } Line;
 

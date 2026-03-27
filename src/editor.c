@@ -5,6 +5,7 @@
 #include <signal.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -60,7 +61,6 @@ render(){
 
 void
 process_key(){
-    move(editor.viewport.cursor_row, 5);
     int c = getch();
     if(c == KEY_ENTER) {
         delwin(editor.subwin);
@@ -158,7 +158,7 @@ render_result(){
         }
     }
     wrefresh(win);
-    move(editor.viewport.cursor_row, editor.viewport.cursor_col);
+    move(editor.viewport.cursor_row, editor.viewport.cursor_col + 4);
     refresh();
 }
 
@@ -178,6 +178,7 @@ mkline(char* str, Expression expr){
     line->gap_start = line->content + strlen(str);
     line->gap_end = line->content + strlen(str) + 10 - 1;
     line->length = strlen(str);
+    line->capacity = strlen(str) + 10; // buffer real size;
     return line;
 }
 
@@ -192,23 +193,43 @@ update_offset(){
     }
 }
 
-void
-insert_char(Line* line, char c){
-    if(line->gap_start < line->gap_end){
+void insert_char(Line *line, char c) {
+    if (line->gap_start <= line->gap_end) {
         *line->gap_start = c;
         line->gap_start += 1;
-        line->length++;
+        line->length += 1;
+        editor.viewport.cursor_col += 1;
         return;
     }
-    *line->gap_start = c;
-    line->length += 10;
-    line->content = realloc(line->content, line->length);
-    if(line->content == NULL) ex("Error: impossible realloc string");
-    if(line->gap_end < line->content + line->length){
-        memmove(line->gap_end + 1 + 10, line->gap_end + 1, line->length - (int)(line->gap_end - line->content));
+
+    size_t grow = 10;
+    size_t old_capacity = line->capacity;
+
+    size_t gs = (size_t)(line->gap_start - line->content);
+    size_t ge = (size_t)(line->gap_end - line->content);
+
+    char *new_content = realloc(line->content, old_capacity + grow);
+    if (new_content == NULL) {
+        ex("Error: impossible realloc string");
     }
+
+    line->content = new_content;
+    line->capacity = old_capacity + grow;
+
+    line->gap_start = line->content + gs;
+    line->gap_end   = line->content + ge;
+
+    size_t right_size = old_capacity - (ge + 1);
+
+    memmove(line->gap_end + 1 + grow,
+            line->gap_end + 1,
+            right_size);
+
+    line->gap_end += grow;
+
+    *line->gap_start = c;
     line->gap_start += 1;
-    line->gap_end += 10;
+    line->length += 1;
     editor.viewport.cursor_col += 1;
 }
 
