@@ -18,7 +18,7 @@ extern Editor editor;
 void 
 process_line(){
     Line* line = editor.current_line;
-    lexer_init(&lx, line_to_str(line));
+    lexer_init(&lx, strdup_line_content(line));
     if(setjmp(exception_env) == 0){
         AST* ast = parse_expr();
         if(ast == NULL) return;

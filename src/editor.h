@@ -1,3 +1,4 @@
+#pragma once
 #include <ncurses.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -58,29 +59,5 @@ process_key();
 void
 render_result();
 
-void
-on_resize(int sig);
-
-int
-is_operation(char ch);
-
-Line*
-get_line(uint8_t idx);
-
-Line*
-mkline(char* str, Expression expr);
-
-void
-update_offset();
-
-void
-insert_char(Line* line, char c);
-
-void
-concat_lines(Line* line1, Line* line2);
-
 char*
-strdup_line_content(Line* line);
-
-char*
-line_to_str(Line* line);
+strdup_line_content(Line*);
