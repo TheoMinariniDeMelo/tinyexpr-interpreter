@@ -18,7 +18,14 @@ extern Editor editor;
 void 
 process_line(){
     Line* line = editor.current_line;
+    if(line->length == 0){
+        line->expr = (Expression){
+            .tag = VOID,
+        };
+        return;
+    }
     lexer_init(&lx, strdup_line_content(line));
+
     if(setjmp(exception_env) == 0){
         AST* ast = parse_expr();
         if(ast == NULL) return;

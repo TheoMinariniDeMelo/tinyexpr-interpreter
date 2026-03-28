@@ -147,21 +147,27 @@ init_editor(){
 void
 render(){
     update_offset();
+    move(editor.viewport.cursor_row, editor.viewport.cursor_col + 4 - 1);
+    clrtoeol();
     for(int i = 0; i < editor.numlines; i++){
         move(i, 0);
         Line* line = get_line(i);
         printw(">>> ");
         printw("%s", strdup_line_content(line));
     }
+    refresh();
 }
 
 void
 process_key(){
     int c = getch();
     if(c == KEY_ENTER) {
+        if(editor.viewport.cursor_col > editor.current_line->length)
         delwin(editor.subwin);
         Line* new_line = mkline("", (Expression) { .tag = VOID });
+        
         editor.lines = realloc(editor.lines, sizeof(editor.lines) + sizeof(Line*));
+
         memmove(editor.lines + editor.viewport.cursor_row + 2, editor.lines + editor.viewport.cursor_row + 1, sizeof(Line*) * (editor.numlines - editor.viewport.cursor_row));
 
         if(editor.lines == NULL) ex("Error");
@@ -178,7 +184,7 @@ process_key(){
         insert_char(editor.current_line, c);
         return;
     }
-    if(c == KEY_BACKSPACE){
+    if(c == KEY_BACKSPACE || c == 0x7F){
         if(editor.viewport.cursor_col == 0 && editor.viewport.cursor_row >= 1){
             delwin(editor.subwin);
             Line* previous_line = get_line(editor.viewport.cursor_col - 1);
@@ -199,6 +205,8 @@ process_key(){
         }
         if(editor.viewport.cursor_col > 0){
             editor.current_line->gap_start--;
+            editor.viewport.cursor_col--;
+            editor.current_line->length--;
             return;
         }
     }
