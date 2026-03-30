@@ -161,26 +161,33 @@ render(){
 void
 process_key(){
     int c = getch();
-    if(c == KEY_ENTER) {
-        if(editor.viewport.cursor_col > editor.current_line->length)
+    if(c == KEY_ENTER || c == 0x0D || c == 0x0A) {
         delwin(editor.subwin);
-        Line* new_line = mkline("", (Expression) { .tag = VOID });
-        
-        editor.lines = realloc(editor.lines, sizeof(editor.lines) + sizeof(Line*));
 
-        memmove(editor.lines + editor.viewport.cursor_row + 2, editor.lines + editor.viewport.cursor_row + 1, sizeof(Line*) * (editor.numlines - editor.viewport.cursor_row));
+        Line* old_line = editor.current_line;
+        Line* new_line = mkline("", (Expression) { .tag = VOID });
+
+        editor.lines = realloc(editor.lines, sizeof(Line*)*(editor.numlines + 1));
 
         if(editor.lines == NULL) ex("Error");
 
-        editor.lines[editor.viewport.cursor_row] = new_line;
+        if(editor.viewport.cursor_row < editor.numlines - 1){
+            memmove(editor.lines + editor.viewport.cursor_row + 2, editor.lines + editor.viewport.cursor_row + 1, sizeof(Line*) * (editor.numlines - editor.viewport.cursor_row));
+        }
+
+        editor.lines[editor.viewport.cursor_row + 1] = new_line;
         editor.numlines += 1;
         editor.current_line = new_line;
         editor.viewport.cursor_row += 1;
         editor.viewport.cursor_col = 0;
 
         editor.subwin = NEW_WINDOW();
+    
+        if(editor.viewport.cursor_col >= editor.current_line->length){
+            //concat_lines(new_line, old_line)
+        }
     }
-    if(is_operation(c) || isdigit(c) || c == '(' || c == ')' || c == ' '){
+    if(is_operation(c) || isdigit(c) || c == '(' || c == ')' || c == ' ' || c == '.'){
         insert_char(editor.current_line, c);
         return;
     }
